@@ -41,7 +41,39 @@ def key_handler(event):
 
 def mouse_handler(event):
   loc = event.locationInWindow()
-  print event.timestamp(), loc.x, loc.y
+  #print event.timestamp(), loc.x, loc.y
+  draw_screen(loc.x, loc.y)
+
+def draw_screen(x=0, y=0):
+  frame = NSScreen.mainScreen().frame()
+
+  width = int(frame.size.width)
+  height = int(frame.size.height)
+
+  x = x / width
+  y = y / height
+
+  char_width = 14 * 4
+  char_height = 12
+
+  print "=" * char_width
+  for i in range(char_height):
+
+    y0 = 1.0 - float(i + 1) / char_height
+    y1 = 1.0 - float(i) / char_height
+
+    if (y0 < y and y < y1):
+      index = int(char_width * x)
+      space = "T "
+      space += " " * index
+      space += "^"
+      space += " " * (char_width - index)
+    else:
+      space = "F "
+      space += " " * char_width
+
+    print "|" + space + "|", y0, y, y1
+  print "=" * char_width
 
 def mouseEvent(type, posx, posy):
   theEvent = CGEventCreateMouseEvent(
