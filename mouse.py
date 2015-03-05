@@ -1,3 +1,4 @@
+#!/usr/bin/python2.6
 from Quartz.CoreGraphics import CGEventCreateMouseEvent
 from Quartz.CoreGraphics import CGEventPost
 from Quartz.CoreGraphics import kCGEventMouseMoved
@@ -7,30 +8,59 @@ from Quartz.CoreGraphics import kCGEventLeftMouseUp
 from Quartz.CoreGraphics import kCGMouseButtonLeft
 from Quartz.CoreGraphics import kCGHIDEventTap
 
+from Cocoa import *
+from Foundation import *
+from PyObjCTools import AppHelper
+
 from AppKit import NSScreen
 
 from time import sleep
 
+from pymouse import PyMouse
+from pykeyboard import PyKeyboard
+
+MOUSE = PyMouse()
+KEYBOARD = PyKeyboard()
+
 DELAY = 1.0 / 1024
 
+class AppDelegate(NSObject):
+  def applicationDidFinishLaunching_(self, aNotification):
+    # keyboard
+    NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(NSKeyDownMask, key_handler)
+
+    # mouse
+    NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(NSMouseMovedMask, mouse_handler)
+    NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(NSLeftMouseDownMask, mouse_handler)
+    NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(NSLeftMouseUpMask, mouse_handler)
+    NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(NSRightMouseDownMask, mouse_handler)
+    NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(NSRightMouseUpMask, mouse_handler)
+
+def key_handler(event):
+  print event.timestamp(), event.keyCode(), event.characters()
+
+def mouse_handler(event):
+  loc = event.locationInWindow()
+  print event.timestamp(), loc.x, loc.y
+
 def mouseEvent(type, posx, posy):
-        theEvent = CGEventCreateMouseEvent(
-                    None, 
-                    type, 
-                    (posx,posy), 
-                    kCGMouseButtonLeft)
-        CGEventPost(kCGHIDEventTap, theEvent)
+  theEvent = CGEventCreateMouseEvent(
+              None, 
+              type, 
+              (posx,posy), 
+              kCGMouseButtonLeft)
+  CGEventPost(kCGHIDEventTap, theEvent)
 
 def mousemove(posx,posy):
-        mouseEvent(kCGEventMouseMoved, posx,posy);
-        sleep(DELAY)
+  mouseEvent(kCGEventMouseMoved, posx,posy);
+  sleep(DELAY)
 
 def mouseclick(posx,posy):
-        # uncomment this line if you want to force the mouse 
-        # to MOVE to the click location first (I found it was not necessary).
-        #mouseEvent(kCGEventMouseMoved, posx,posy);
-        mouseEvent(kCGEventLeftMouseDown, posx,posy);
-        mouseEvent(kCGEventLeftMouseUp, posx,posy);
+  # uncomment this line if you want to force the mouse 
+  # to MOVE to the click location first (I found it was not necessary).
+  #mouseEvent(kCGEventMouseMoved, posx,posy);
+  mouseEvent(kCGEventLeftMouseDown, posx,posy);
+  mouseEvent(kCGEventLeftMouseUp, posx,posy);
 
 def follow_line(x0, y0, x1, y1, step=1):
   xstep = step
@@ -75,6 +105,12 @@ def fivelaps():
      lap(scale)
 
 def main():
-  fivelaps()
+  app = NSApplication.sharedApplication()
+  delegate = AppDelegate.alloc().init()
+  NSApp().setDelegate_(delegate)
+  AppHelper.runEventLoop()
 
 main()
+
+
+
