@@ -16,11 +16,11 @@ from AppKit import NSScreen
 
 from time import sleep
 
-from pymouse import PyMouse
-from pykeyboard import PyKeyboard
-
-MOUSE = PyMouse()
-KEYBOARD = PyKeyboard()
+# from pymouse import PyMouse
+# from pykeyboard import PyKeyboard
+# 
+# MOUSE = PyMouse()
+# KEYBOARD = PyKeyboard()
 
 DELAY = 1.0 / 1024
 
@@ -67,7 +67,7 @@ def draw_screen(x=0, y=0):
       space = "T "
       space += " " * index
       space += "^"
-      space += " " * (char_width - index)
+      space += " " * (char_width - index - 1)
     else:
       space = "F "
       space += " " * char_width
