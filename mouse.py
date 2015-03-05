@@ -16,13 +16,16 @@ from AppKit import NSScreen
 
 from time import sleep
 
+import threading
+import math
+
 # from pymouse import PyMouse
 # from pykeyboard import PyKeyboard
 # 
 # MOUSE = PyMouse()
 # KEYBOARD = PyKeyboard()
 
-DELAY = 1.0 / 1024
+DELAY = 1.0 / 10
 
 class AppDelegate(NSObject):
   def applicationDidFinishLaunching_(self, aNotification):
@@ -45,8 +48,25 @@ def mouse_handler(event):
 
   loc = event.locationInWindow()
 
-  VX = event.deltaX()
-  VY = event.deltaY()
+  vx = event.deltaX()
+  vy = event.deltaY()
+
+  if (vx == 0):
+    pass
+  elif (vx < 0):
+    VX = -math.log(-vx)
+  else:
+    VX = math.log(vx)
+
+  if (vy == 0):
+    pass
+  elif (vy < 0):
+    VY = -math.log(-vy)
+  else:
+    VY = math.log(vy)
+
+  VX *= 4
+  VY *= 4
 
   draw_screen(loc.x, loc.y)
 
@@ -55,9 +75,11 @@ def draw_screen(x=0, y=0):
   global VY
   global MOUSEX
   global MOUSEY
+  global WIDTH
+  global HEIGHT
 
   MOUSEX = x
-  MOUSEY = y
+  MOUSEY = HEIGHT - y
 
   frame = NSScreen.mainScreen().frame()
 
@@ -159,22 +181,45 @@ frame = NSScreen.mainScreen().frame()
 WIDTH = int(frame.size.width)
 HEIGHT = int(frame.size.height)
 
-
 def airhockey():
-  if (MOUSEX < 1 or MOUSE_X > WIDTH - 1):
-    VX *= -1
-  if (MOUSEY < 1 or MOUSE_Y > HEIGHT - 1):
-    VY *= -1
+  global VX
+  global VY
+  global MOUSEX
+  global MOUSEY
+  global WIDTH
+  global HEIGHT
+  global mousemove
+  global DELAY
 
-  movemouse(MOUSEX + VX, MOUSEX + VY)
+  while (True):
+    if (MOUSEX < 1):
+      VX = abs(VX)
+      MOUSEX = 0
+      print "HOZ BOUNCE"
+    if (MOUSEX > WIDTH - 2):
+      MOUSEX = WIDTH
+      VX = -abs(VX)
+      print "HOZ BOUNCE"
+
+    if (MOUSEY < 1):
+      VY = abs(VY)
+      MOUSEY = 0
+      print "VERT BOUNCE"
+    if (MOUSEY > HEIGHT - 2):
+      MOUSEY = HEIGHT
+      VY = -abs(VY)
+      print "VERT BOUNCE"
+
+    mousemove(MOUSEX + VX, MOUSEY + VY)
+
 
 def main():
+  thread = threading.Thread(target=airhockey)
+  thread.start()
+
   app = NSApplication.sharedApplication()
   delegate = AppDelegate.alloc().init()
   NSApp().setDelegate_(delegate)
   AppHelper.runEventLoop()
 
 main()
-
-
-
