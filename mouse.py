@@ -40,11 +40,25 @@ def key_handler(event):
   print event.timestamp(), event.keyCode(), event.characters()
 
 def mouse_handler(event):
+  global VX
+  global VY
+
   loc = event.locationInWindow()
-  #print event.timestamp(), loc.x, loc.y
+
+  VX = event.deltaX()
+  VY = event.deltaY()
+
   draw_screen(loc.x, loc.y)
 
 def draw_screen(x=0, y=0):
+  global VX
+  global VY
+  global MOUSEX
+  global MOUSEY
+
+  MOUSEX = x
+  MOUSEY = y
+
   frame = NSScreen.mainScreen().frame()
 
   width = int(frame.size.width)
@@ -53,9 +67,10 @@ def draw_screen(x=0, y=0):
   x = x / width
   y = y / height
 
-  char_width = 14 * 4
+  char_width = 14 * 4 - 2
   char_height = 12
 
+  print "x: %04d y: %04d vx: %04.2f vy: %04.2f" % (MOUSEX, MOUSEY, VX, VY)
   print "=" * char_width
   for i in range(char_height):
 
@@ -64,15 +79,13 @@ def draw_screen(x=0, y=0):
 
     if (y0 < y and y < y1):
       index = int(char_width * x)
-      space = "T "
-      space += " " * index
+      space = " " * index
       space += "^"
       space += " " * (char_width - index - 1)
     else:
-      space = "F "
-      space += " " * char_width
+      space = " " * char_width
 
-    print "|" + space + "|", y0, y, y1
+    print "|" + space + "| %.4f %.4f %.4f" % (y0, y, y1)
   print "=" * char_width
 
 def mouseEvent(type, posx, posy):
@@ -135,6 +148,25 @@ def fivelaps():
    for i in range(5):
      scale = 1.0 / (i + 1)
      lap(scale)
+
+MOUSEX = 700
+MOUSEY = 450
+VX = 0
+VY = 0
+
+frame = NSScreen.mainScreen().frame()
+
+WIDTH = int(frame.size.width)
+HEIGHT = int(frame.size.height)
+
+
+def airhockey():
+  if (MOUSEX < 1 or MOUSE_X > WIDTH - 1):
+    VX *= -1
+  if (MOUSEY < 1 or MOUSE_Y > HEIGHT - 1):
+    VY *= -1
+
+  movemouse(MOUSEX + VX, MOUSEX + VY)
 
 def main():
   app = NSApplication.sharedApplication()
